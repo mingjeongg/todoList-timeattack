@@ -18,8 +18,6 @@ const page = () => {
   //데이터 추가 로직
   const addTodo = async () => {
     const newTodo = {
-      // 왜 title: {title}로 쓰면 안돼??????
-      // 왜 json.stryingfy해줘야해????????
       title: title,
       contents: contents,
       isDone: false,
@@ -29,6 +27,7 @@ const page = () => {
     const newTodoList = await axios.get("http://localhost:4000/todos");
     // axios로 받아오면 오만가지 다 받아와져서 꼭 그 중에서 data 가져온다고 해야함 아님 배열이 아니네 뭐네 오류남
     setTodoList(newTodoList.data);
+    // [...todoList,newTodoList.data ]
   };
 
   // todoList 가져오는 로직
@@ -47,13 +46,24 @@ const page = () => {
     getTodoList();
   }, []);
 
-  // todoList 완료로 변경
-  //   const changeToIsDone = async (id) => {
-  //     await axios.patch(`http://localhost:4000/todos/${id}`, 변경할투두객체)
-  //   }
+  //   todoList 완료로 변경
+  const changeToIsDone = async (todo: Todo) => {
+    const newTodo = {
+      title: todo.title,
+      contents: todo.contents,
+      isDone: true,
+    };
+    await axios.patch(`http://localhost:4000/todos/${todo.id}`, newTodo);
+    const newTodoList = await axios.get("http://localhost:4000/todos");
+    setTodoList(newTodoList.data);
+  };
 
   // todoList 삭제
-  const deleteTodo = () => {};
+  const deleteTodo = async (id: string) => {
+    await axios.delete(`http://localhost:4000/todos/${id}`);
+    const newTodoList = await axios.get("http://localhost:4000/todos");
+    setTodoList(newTodoList.data);
+  };
 
   return (
     <div>
@@ -80,10 +90,17 @@ const page = () => {
       {todoList.map((todo) => {
         return (
           <div key={todo.id}>
-            <p>{JSON.stringify(todo.title)}</p>
-            <p>{JSON.stringify(todo.contents)}</p>
-            {/* <button onClick={changeToIsDone(todo.id)}>완료</button> */}
-            <button onClick={deleteTodo}>삭제</button>
+            <p>{todo.title}</p>
+            <p>{todo.contents}</p>
+            <p>{todo.isDone}</p>
+            <button
+              onClick={() => {
+                changeToIsDone(todo);
+              }}
+            >
+              완료
+            </button>
+            <button onClick={() => deleteTodo(todo.id)}>삭제</button>
           </div>
         );
       })}
